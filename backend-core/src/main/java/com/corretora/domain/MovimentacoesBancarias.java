@@ -1,6 +1,9 @@
 package com.corretora.domain;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import nonapi.io.github.classgraph.json.Id;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -9,27 +12,18 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
+@Getter
+@Setter
+@Builder
 @Document(collection = "movimentacoesBancarias")
 public class MovimentacoesBancarias {
-    @Id
     private ObjectId usuarioId;
-
-    private String tipo;
+    private ObjectId contaBancariaId;
+    private TipoMovimentacoes tipo;
     private String ticker;
     private Integer quantidade;
     private BigDecimal valor;
-    private LocalDate localDate;
+    private LocalDate dataMovimentacao;
     private BigDecimal saldoAnterior;
     private BigDecimal saldoAtual;
-
-    public MovimentacoesBancarias(ObjectId usuarioId, String tipo, String ticker, Integer quantidade, BigDecimal valor, LocalDate localDate, BigDecimal saldoAnterior, BigDecimal saldoAtual) {
-        this.usuarioId = usuarioId;
-        this.tipo = tipo;
-        this.ticker = ticker;
-        this.quantidade = quantidade;
-        this.valor = valor;
-        this.localDate = localDate;
-        this.saldoAnterior = saldoAnterior;
-        this.saldoAtual = saldoAtual;
-    }
 }

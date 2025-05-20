@@ -34,7 +34,7 @@ public class UsuarioService {
         Usuario novoUsuario = Usuario.builder()
                 .nome(dto.getNome())
                 .email(dto.getEmail())
-                .perfil(dto.getPerfil())
+                .perfilInvestidor(dto.getPerfilInvestidor())
                 .criadoEm(LocalDate.now())
                 .build();
         return repository.save(novoUsuario);

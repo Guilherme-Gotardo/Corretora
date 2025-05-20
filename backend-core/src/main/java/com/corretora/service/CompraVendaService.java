@@ -3,6 +3,7 @@ package com.corretora.service;
 import com.corretora.domain.Acoes;
 import com.corretora.domain.ContaBancaria;
 import com.corretora.domain.MovimentacoesBancarias;
+import com.corretora.domain.TipoMovimentacoes;
 import com.corretora.repository.AcoesRepository;
 import com.corretora.repository.ContaBancariaRepository;
 import com.corretora.repository.MovimentacaoBancariaRepository;
@@ -48,17 +49,17 @@ public class CompraVendaService {
             return "Saldo insuficiente para compra.";
         }
 
-        MovimentacoesBancarias movimentacao = new MovimentacoesBancarias(
-                usuarioId,
-                "COMPRA",
-                ticker,
-                quantidade,
-                valorTotalCompra,
-                LocalDate.now(),
-                saldoAtual,
-                saldoAtual.subtract(valorTotalCompra)
-        );
-
+        MovimentacoesBancarias movimentacao = MovimentacoesBancarias.builder()
+                .usuarioId(usuarioId)
+                .contaBancariaId(conta.getContaId())
+                .tipo(TipoMovimentacoes.COMPRA)
+                .ticker(ticker)
+                .quantidade(quantidade)
+                .valor(valorTotalCompra)
+                .dataMovimentacao(LocalDate.now())
+                .saldoAnterior(saldoAtual)
+                .saldoAtual(saldoAtual.subtract(valorTotalCompra))
+                .build();
         movimentacaoBancariaRepository.save(movimentacao);
         return "Compra realizada com sucesso.";
     }
@@ -82,20 +83,19 @@ public class CompraVendaService {
         BigDecimal valorTotalVenda = acao.getPreco().multiply(BigDecimal.valueOf(quantidade));
         BigDecimal saldoAtual = obterSaldoCaixa(usuarioId);
 
-        MovimentacoesBancarias movimentacao = new MovimentacoesBancarias(
-                usuarioId,
-                "VENDA",
-                ticker,
-                quantidade,
-                valorTotalVenda,
-                LocalDate.now(),
-                saldoAtual,
-                saldoAtual.add(valorTotalVenda)
-        );
-
+        MovimentacoesBancarias movimentacao = MovimentacoesBancarias.builder()
+                .usuarioId(usuarioId)
+                .contaBancariaId(conta.getContaId())
+                .tipo(TipoMovimentacoes.COMPRA)
+                .ticker(ticker)
+                .quantidade(quantidade)
+                .valor(valorTotalVenda)
+                .dataMovimentacao(LocalDate.now())
+                .saldoAnterior(saldoAtual)
+                .saldoAtual(saldoAtual.add(valorTotalVenda))
+                .build();
         movimentacaoBancariaRepository.save(movimentacao);
         return "Venda realizada com sucesso.";
-
     }
 
     // Agregações para fazer as movimentações dos usuarios

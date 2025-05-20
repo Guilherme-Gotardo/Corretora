@@ -1,5 +1,6 @@
 package com.corretora.dto;
 
+import com.corretora.domain.TipoPerfil;
 import com.corretora.domain.Usuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +27,6 @@ public class UsuarioDTO{
     private String email;
 
     @NotBlank
-    private String perfil;
+    private TipoPerfil perfilInvestidor;
 
 }

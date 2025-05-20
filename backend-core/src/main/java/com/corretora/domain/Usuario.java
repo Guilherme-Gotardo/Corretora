@@ -13,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 @Document(collection = "usuarios")
 public class Usuario {
     @Id
@@ -24,7 +26,6 @@ public class Usuario {
     @Email
     private String email;
 
-    private String perfil;
-    private List<String> produtosIds;
+    private TipoPerfil perfilInvestidor;
     private LocalDate criadoEm = LocalDate.now();
 }

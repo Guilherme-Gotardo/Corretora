@@ -22,10 +22,4 @@ public class ContaBancaria {
     private ObjectId usuarioId;
     private BigDecimal saldoCaixa;
     private BigDecimal saldoInvestido;
-
-    public ContaBancaria(ObjectId usuarioId, BigDecimal saldoCaixa, BigDecimal saldoInvestido) {
-        this.usuarioId = usuarioId;
-        this.saldoCaixa = BigDecimal.valueOf(0.0);
-        this.saldoInvestido = BigDecimal.valueOf(0.0);
-    }
 }

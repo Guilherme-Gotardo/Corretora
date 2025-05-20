@@ -1,6 +1,8 @@
 package com.corretora.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import nonapi.io.github.classgraph.json.Id;
 import org.bson.types.ObjectId;
@@ -14,32 +16,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ContaBancariaDTO {
-    @NotBlank
+    @NotNull
     private ObjectId usuarioId;
+
     private BigDecimal saldoCaixa;
     private BigDecimal saldoInvestido;
 
-    public ObjectId getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(ObjectId usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public BigDecimal getSaldoCaixa() {
-        return saldoCaixa;
-    }
-
-    public void setSaldoCaixa(BigDecimal saldoCaixa) {
-        this.saldoCaixa = saldoCaixa;
-    }
-
-    public BigDecimal getSaldoInvestido() {
-        return saldoInvestido;
-    }
-
-    public void setSaldoInvestido(BigDecimal saldoInvestido) {
-        this.saldoInvestido = saldoInvestido;
-    }
+    @NotNull
+    @PositiveOrZero
+    private BigDecimal saldoInicial;
 }
