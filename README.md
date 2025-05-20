@@ -8,7 +8,7 @@
 
 ## ⚙️ Funcionalidades específicas executadas por **AWS Lambda**
 
-## 🖥️ EC2 atua como **nó do EKS**, não mais como ambiente de execução principal
+## 🖥️ EC2 atua como **nó do EKS**
 
 ---
 
