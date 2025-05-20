@@ -1,0 +1,4 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://guilhergotardo:Guigo15021303@cluster-corretora.r07g5a4.mongodb.net/corretora?retryWrites=true&w=majority&appName=cluster-corretora
