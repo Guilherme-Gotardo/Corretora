@@ -31,7 +31,6 @@ public class CompraVendaService {
     private final MovimentacaoBancariaRepository movimentacaoBancariaRepository;
     private final MongoTemplate mongoTemplate;
 
-    // Metodo para compras de ações
     public String comprarAcao(ObjectId usuarioId, String ticker, Integer quantidade) {
         Optional<Acoes> acaoOptional = acoesRepository.findByTicker(ticker);
         Optional<ContaBancaria> contaOptional = contaBancariaRepository.findByUsuarioId(usuarioId);
@@ -64,7 +63,6 @@ public class CompraVendaService {
         return "Compra realizada com sucesso.";
     }
 
-    // Método para venda de ações
     public String venderAcao(ObjectId usuarioId, String ticker, Integer quantidade) {
         Optional<Acoes> acaoOptional = acoesRepository.findByTicker(ticker);
         Optional<ContaBancaria> contaOptional = contaBancariaRepository.findByUsuarioId(usuarioId);
@@ -98,7 +96,6 @@ public class CompraVendaService {
         return "Venda realizada com sucesso.";
     }
 
-    // Agregações para fazer as movimentações dos usuarios
     public BigDecimal obterSaldoCaixa(ObjectId usuarioId) {
         Aggregation agg = newAggregation(
                 match(org.springframework.data.mongodb.core.query.Criteria.where("usuarioId").is(usuarioId)),

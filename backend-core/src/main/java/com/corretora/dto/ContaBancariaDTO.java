@@ -16,13 +16,27 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ContaBancariaDTO {
+    @Id
+    ObjectId contaId;
+
     @NotNull
     private ObjectId usuarioId;
 
-    private BigDecimal saldoCaixa;
-    private BigDecimal saldoInvestido;
+    @NotBlank
+    private String banco;
 
-    @NotNull
-    @PositiveOrZero
-    private BigDecimal saldoInicial;
+    @NotBlank
+    private String numeroConta;
+
+    @NotBlank
+    private String agencia;
+
+    @Builder.Default
+    private BigDecimal saldoCaixa = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal saldoInvestido = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal saldoInicial = BigDecimal.ZERO;
 }

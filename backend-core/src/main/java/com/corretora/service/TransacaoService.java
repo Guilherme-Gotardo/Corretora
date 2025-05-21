@@ -18,12 +18,10 @@ public class TransacaoService {
         this.mongoTemplate = mongoTemplate;
     }
 
-    // Transações por ID de usuário
     public List<Transacao> buscarPorUsuarioId(String usuarioId) {
         return transacaoRepository.findByUsuarioId(usuarioId);
     }
 
-    // Salvar uma transação em uma lista
     public List<Transacao> salvarTransacao(String usuarioId, List<Transacao> transacoes) {
 
         for (Transacao t : transacoes) {

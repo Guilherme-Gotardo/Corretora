@@ -25,7 +25,6 @@ public class UsuarioService {
         this.mongoTemplate = mongoTemplate;
     }
 
-    // Metodo para criação e cadastro de usuarios
     public Usuario criarUsuario(UsuarioDTO dto) {
         Optional<Usuario> usuarioExistente = repository.findByEmail(dto.getEmail());
         if (usuarioExistente.isPresent()) {
@@ -40,12 +39,10 @@ public class UsuarioService {
         return repository.save(novoUsuario);
     }
 
-    // Metodo para listagem de todos os usuarios cadastrados
     public List<Usuario> listarTodos() {
         return repository.findAll();
     }
 
-    // Metodo para listagem de todos os perfis de investimento dos usuarios cadastrados
     public List<PerfilInvestimentoQuantidadeDTO> agruparPorPerfilInvestimento() {
         Aggregation aggregation = newAggregation(
                 group("perfil").count().as("quantidade"),

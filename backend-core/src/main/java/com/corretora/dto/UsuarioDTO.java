@@ -15,8 +15,6 @@ import org.bson.types.ObjectId;
 @AllArgsConstructor
 @Builder
 public class UsuarioDTO{
-
-    // Vou criar a DTO tirando a necessidade do frontend ter que cadastrar uma lista de produtos para o usuário
     @Id
     private ObjectId usuarioId;
 
@@ -26,7 +24,5 @@ public class UsuarioDTO{
     @Email
     private String email;
 
-    @NotBlank
     private TipoPerfil perfilInvestidor;
-
 }

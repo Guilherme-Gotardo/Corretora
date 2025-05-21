@@ -1,5 +1,8 @@
 package com.corretora.domain;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -17,9 +20,27 @@ import java.math.BigDecimal;
 @Document(collection = "contasBancarias")
 public class ContaBancaria {
     @Id
-    private ObjectId contaId;
+    ObjectId contaId;
 
+    @NotNull
     private ObjectId usuarioId;
-    private BigDecimal saldoCaixa;
-    private BigDecimal saldoInvestido;
+
+    @NotBlank
+    private String banco;
+
+    @NotBlank
+    private String numeroConta;
+
+    @NotBlank
+    private String agencia;
+
+    @Builder.Default
+    private BigDecimal saldoCaixa = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal saldoInvestido = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal saldoInicial = BigDecimal.ZERO;
 }
+

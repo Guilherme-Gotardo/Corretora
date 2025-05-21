@@ -34,8 +34,12 @@ public class ContaBancariaService {
         }
 
         ContaBancaria contaBancaria = ContaBancaria.builder()
-                .usuarioId(dto.getUsuarioId()).build();
-
+                .usuarioId(dto.getUsuarioId())
+                .banco(dto.getBanco())
+                .numeroConta(dto.getNumeroConta())
+                .agencia(dto.getAgencia())
+                .saldoInicial(dto.getSaldoInicial())
+                .build();
         ContaBancaria contaSalva =  contaBancariaRepository.save(contaBancaria);
 
         MovimentacoesBancarias movimentacaoInicial = MovimentacoesBancarias.builder()
@@ -47,9 +51,7 @@ public class ContaBancariaService {
                 .saldoAnterior(BigDecimal.ZERO)
                 .saldoAtual(dto.getSaldoInicial())
                 .build();
-
         mongoTemplate.save(movimentacaoInicial, "movimentacoesBancarias");
-
         return contaSalva;
     }
 }
