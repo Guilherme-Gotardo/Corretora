@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -47,7 +48,7 @@ public class ContaBancariaService {
                 .contaBancariaId(contaSalva.getContaId())
                 .tipo(TipoMovimentacoes.DEPOSITO)
                 .valor(dto.getSaldoInicial())
-                .dataMovimentacao(LocalDate.now())
+                .dataMovimentacao(LocalDateTime.now())
                 .saldoAnterior(BigDecimal.ZERO)
                 .saldoAtual(dto.getSaldoInicial())
                 .build();

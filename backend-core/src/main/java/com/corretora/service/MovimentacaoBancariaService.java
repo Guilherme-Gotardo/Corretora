@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -18,50 +19,60 @@ import java.util.Optional;
 public class MovimentacaoBancariaService {
 
     private final MovimentacaoBancariaRepository movimentacaoBancariaRepository;
-    private final CompraVendaService compraVendaService;
     private final ContaBancariaRepository contaBancariaRepository;
 
     public String realizarDeposito(ObjectId usuarioId, BigDecimal valor) {
-        BigDecimal saldoAtual = compraVendaService.obterSaldoCaixa(usuarioId);
         Optional<ContaBancaria> contaOptional = contaBancariaRepository.findByUsuarioId(usuarioId);
 
         if (contaOptional.isEmpty()) throw new IllegalArgumentException("Conta não econtrada");
 
         ContaBancaria conta = contaOptional.get();
+
+        BigDecimal saldoAtual = conta.getSaldoCaixa();
+        BigDecimal saldoAtualizado = saldoAtual.add(valor);
+
+        conta.setSaldoCaixa(saldoAtualizado);
 
         MovimentacoesBancarias deposito = MovimentacoesBancarias.builder()
                 .usuarioId(usuarioId)
                 .contaBancariaId(conta.getContaId())
                 .tipo(TipoMovimentacoes.DEPOSITO)
                 .valor(valor)
-                .dataMovimentacao(LocalDate.now())
-                .saldoAnterior(conta.getSaldoCaixa())
-                .saldoAtual(conta.getSaldoCaixa().add(valor))
+                .dataMovimentacao(LocalDateTime.now())
+                .saldoAnterior(saldoAtual)
+                .saldoAtual(saldoAtualizado)
                 .build();
         movimentacaoBancariaRepository.save(deposito);
+        contaBancariaRepository.save(conta);
         return "Depósito realizado com sucesso.";
     }
 
     public String realizarSaque(ObjectId usuarioId, BigDecimal valor) {
-
         Optional<ContaBancaria> contaOptional = contaBancariaRepository.findByUsuarioId(usuarioId);
+
         if (contaOptional.isEmpty()) throw new IllegalArgumentException("Conta não econtrada");
 
-        BigDecimal saldoAtual = compraVendaService.obterSaldoCaixa(usuarioId);
+        ContaBancaria conta = contaOptional.get();
+
+        BigDecimal saldoAtual = conta.getSaldoCaixa();
+
         if (saldoAtual.compareTo(valor) < 0) throw new IllegalArgumentException("Saldo insuficiente para saque");
 
-        ContaBancaria conta = contaOptional.get();
+        BigDecimal saldoAtualizado = saldoAtual.subtract(valor);
+
+        conta.setSaldoCaixa(saldoAtualizado);
 
         MovimentacoesBancarias saque = MovimentacoesBancarias.builder()
                 .usuarioId(usuarioId)
                 .contaBancariaId(conta.getContaId())
                 .tipo(TipoMovimentacoes.SAQUE)
                 .valor(valor)
-                .dataMovimentacao(LocalDate.now())
-                .saldoAnterior(conta.getSaldoCaixa())
-                .saldoAtual(conta.getSaldoCaixa().subtract(valor))
+                .dataMovimentacao(LocalDateTime.now())
+                .saldoAnterior(saldoAtual)
+                .saldoAtual(saldoAtualizado)
                 .build();
         movimentacaoBancariaRepository.save(saque);
+        contaBancariaRepository.save(conta);
         return "Saque realizado com sucesso.";
     }
 }

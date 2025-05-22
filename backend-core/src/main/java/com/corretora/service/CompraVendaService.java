@@ -1,12 +1,13 @@
 package com.corretora.service;
 
-import com.corretora.domain.Acoes;
-import com.corretora.domain.ContaBancaria;
-import com.corretora.domain.MovimentacoesBancarias;
-import com.corretora.domain.TipoMovimentacoes;
+import com.corretora.domain.*;
+import com.corretora.dto.TransacaoDTO;
+import com.corretora.queries.SistemaQueryService;
+import com.corretora.queries.results.QuantidadeAcoesDTO;
 import com.corretora.repository.AcoesRepository;
 import com.corretora.repository.ContaBancariaRepository;
 import com.corretora.repository.MovimentacaoBancariaRepository;
+import com.corretora.repository.TransacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
@@ -29,7 +32,8 @@ public class CompraVendaService {
     private final AcoesRepository acoesRepository;
     private final ContaBancariaRepository contaBancariaRepository;
     private final MovimentacaoBancariaRepository movimentacaoBancariaRepository;
-    private final MongoTemplate mongoTemplate;
+    private final TransacaoService transacaoService;
+    private final ActionSystemService actionSystemService;
 
     public String comprarAcao(ObjectId usuarioId, String ticker, Integer quantidade) {
         Optional<Acoes> acaoOptional = acoesRepository.findByTicker(ticker);
@@ -41,12 +45,18 @@ public class CompraVendaService {
         Acoes acao = acaoOptional.get();
         ContaBancaria conta = contaOptional.get();
 
+        if (quantidade <= 0) throw new IllegalArgumentException("Quantidade inválida");
+
         BigDecimal valorTotalCompra = acao.getPreco().multiply(BigDecimal.valueOf(quantidade));
-        BigDecimal saldoAtual = obterSaldoCaixa(usuarioId);
+        BigDecimal saldoAtual = conta.getSaldoCaixa();
 
         if (saldoAtual.compareTo(valorTotalCompra) < 0) {
             return "Saldo insuficiente para compra.";
         }
+
+        BigDecimal saldoAtualizado = conta.getSaldoCaixa().subtract(valorTotalCompra);
+        conta.setSaldoCaixa(saldoAtualizado);
+        contaBancariaRepository.save(conta);
 
         MovimentacoesBancarias movimentacao = MovimentacoesBancarias.builder()
                 .usuarioId(usuarioId)
@@ -55,11 +65,19 @@ public class CompraVendaService {
                 .ticker(ticker)
                 .quantidade(quantidade)
                 .valor(valorTotalCompra)
-                .dataMovimentacao(LocalDate.now())
+                .dataMovimentacao(LocalDateTime.now())
                 .saldoAnterior(saldoAtual)
                 .saldoAtual(saldoAtual.subtract(valorTotalCompra))
                 .build();
         movimentacaoBancariaRepository.save(movimentacao);
+
+        TransacaoDTO transacaoDTO = TransacaoDTO.builder()
+                .usuarioId(usuarioId.toHexString())
+                .ticker(ticker)
+                .quantidade(quantidade)
+                .precoUnitario(acao.getPreco())
+                .build();
+        transacaoService.registrarCompra(transacaoDTO);
         return "Compra realizada com sucesso.";
     }
 
@@ -73,76 +91,41 @@ public class CompraVendaService {
         Acoes acao = acaoOptional.get();
         ContaBancaria conta = contaOptional.get();
 
-        int quantidadeAtual = obterQuantidadeAcoes(usuarioId, ticker);
+        QuantidadeAcoesDTO consultaQuantidadeAcoes = actionSystemService.consultaQuantidadeAcoes(usuarioId, ticker);
+        Integer quantidadeAtual = consultaQuantidadeAcoes.getQuantidade();
+
         if (quantidadeAtual < quantidade) {
             return "Você não possui ações suficientes para vender.";
         }
 
+        if (quantidade <= 0) throw new IllegalArgumentException("Quantidade inválida");
+
         BigDecimal valorTotalVenda = acao.getPreco().multiply(BigDecimal.valueOf(quantidade));
-        BigDecimal saldoAtual = obterSaldoCaixa(usuarioId);
+        BigDecimal saldoAtual = conta.getSaldoCaixa();
+        BigDecimal saldoAtualizado = saldoAtual.add(valorTotalVenda);
+        conta.setSaldoCaixa(saldoAtualizado);
+        contaBancariaRepository.save(conta);
 
         MovimentacoesBancarias movimentacao = MovimentacoesBancarias.builder()
                 .usuarioId(usuarioId)
                 .contaBancariaId(conta.getContaId())
-                .tipo(TipoMovimentacoes.COMPRA)
+                .tipo(TipoMovimentacoes.VENDA)
                 .ticker(ticker)
                 .quantidade(quantidade)
                 .valor(valorTotalVenda)
-                .dataMovimentacao(LocalDate.now())
+                .dataMovimentacao(LocalDateTime.now())
                 .saldoAnterior(saldoAtual)
                 .saldoAtual(saldoAtual.add(valorTotalVenda))
                 .build();
         movimentacaoBancariaRepository.save(movimentacao);
+
+        TransacaoDTO transacaoDTO = TransacaoDTO.builder()
+                .usuarioId(usuarioId.toHexString())
+                .ticker(ticker)
+                .quantidade(quantidade)
+                .precoUnitario(acao.getPreco())
+                .build();
+        transacaoService.registrarVenda(transacaoDTO);
         return "Venda realizada com sucesso.";
-    }
-
-    public BigDecimal obterSaldoCaixa(ObjectId usuarioId) {
-        Aggregation agg = newAggregation(
-                match(org.springframework.data.mongodb.core.query.Criteria.where("usuarioId").is(usuarioId)),
-                group()
-                        .sum(conditionalSum("tipo", "DEPOSITO", "valor")).as("totalDepositos")
-                        .sum(conditionalSum("tipo", "SAQUE", "valor")).as("totalSaques")
-                        .sum(conditionalSum("tipo", "COMPRA", "valor")).as("totalCompras")
-                        .sum(conditionalSum("tipo", "VENDA", "valor")).as("totalVendas"),
-                project()
-                        .and(
-                                ArithmeticOperators.Subtract.valueOf(
-                                        ArithmeticOperators.Add.valueOf("totalDepositos")
-                                                .add("totalVendas")
-                                ).subtract(
-                                        ArithmeticOperators.Add.valueOf("totalSaques")
-                                                .add("totalCompras")
-                                )
-                        ).as("saldoCaixa")
-        );
-
-        AggregationResults<Document> results = mongoTemplate.aggregate(agg, "movimentacoesBancarias", Document.class);
-        Document result = results.getUniqueMappedResult();
-
-        Object saldoCaixaObj = result.get("saldoCaixa");
-        if (saldoCaixaObj instanceof Number) {
-            return BigDecimal.valueOf(((Number) saldoCaixaObj).doubleValue());
-        }
-        return BigDecimal.ZERO;
-    }
-
-    private int obterQuantidadeAcoes(ObjectId usuarioId, String ticker) {
-        Aggregation agg = newAggregation(
-                match(org.springframework.data.mongodb.core.query.Criteria.where("usuarioId").is(usuarioId).and("ticker").is(ticker)),
-                group("ticker")
-                        .sum(conditionalSum("tipo", "COMPRA", "quantidade")).as("compradas")
-                        .sum(conditionalSum("tipo", "VENDA", "quantidade")).as("vendidas"),
-                project().andExpression("compradas - vendidas").as("quantidadeAtual")
-        );
-
-        AggregationResults<Document> results = mongoTemplate.aggregate(agg, "movimentacoesBancarias", Document.class);
-        Document result = results.getUniqueMappedResult();
-
-        return result != null ? result.getInteger("quantidadeAtual") : 0;
-    }
-
-    private org.springframework.data.mongodb.core.aggregation.ConditionalOperators.Cond conditionalSum(String field, String matchValue, String sumField) {
-        return org.springframework.data.mongodb.core.aggregation.ConditionalOperators.when(org.springframework.data.mongodb.core.query.Criteria.where(field).is(matchValue))
-                .thenValueOf(sumField).otherwise(0);
     }
 }

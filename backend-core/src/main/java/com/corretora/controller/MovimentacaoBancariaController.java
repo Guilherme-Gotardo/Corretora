@@ -22,7 +22,7 @@ public class MovimentacaoBancariaController {
     public ResponseEntity<String> depositar(
             @PathVariable String usuarioId,
             @RequestParam BigDecimal valor) {
-        ObjectId objectId = new ObjectId(usuarioId);
+        ObjectId objectId = new ObjectId(usuarioId);        
         String resultado = service.realizarDeposito(objectId, valor);
         return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
     }

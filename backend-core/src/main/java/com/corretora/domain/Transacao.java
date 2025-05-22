@@ -2,10 +2,12 @@ package com.corretora.domain;
 
 import lombok.*;
 import nonapi.io.github.classgraph.json.Id;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -17,11 +19,11 @@ import java.time.LocalDate;
 public class Transacao {
     @Id
     private String id;
+    private ObjectId usuarioId;
     private TipoMovimentacoes tipo;
-    private LocalDate dataTransacao;
-    private BigDecimal valor;
     private String ticker;
     private Integer quantidade;
-    private String usuarioId;
+    private BigDecimal precoUnitario;
+    private LocalDateTime dataTransacao;
 }
 

@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Getter
@@ -23,7 +24,7 @@ public class MovimentacoesBancarias {
     private String ticker;
     private Integer quantidade;
     private BigDecimal valor;
-    private LocalDate dataMovimentacao;
+    private LocalDateTime dataMovimentacao;
     private BigDecimal saldoAnterior;
     private BigDecimal saldoAtual;
 }
